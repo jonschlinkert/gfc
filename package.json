@@ -1,0 +1,49 @@
+{
+  "name": "gfc",
+  "description": "Simple way to initialize a new git repository in an empty directory, add a file and do a first commit (or skip that part in a directory with files). Useful for unit tests and generators.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/jonschlinkert/gfc",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "jonschlinkert/gfc",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/gfc/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.12.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "generategenerator",
+    "gfc"
+  ],
+  "dependencies": {
+    "extend-shallow": "^2.0.1",
+    "mkdirp": "^0.5.1"
+  },
+  "devDependencies": {
+    "gitty": "^3.6.0",
+    "gulp-format-md": "^0.1.12",
+    "mocha": "^3.2.0",
+    "rimraf": "^2.6.1"
+  },
+  "verb": {
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}
