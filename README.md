@@ -167,6 +167,13 @@ firstCommit.sync('foo/bar', options);
 
 ## About
 
+### Related projects
+
+* [git-branch](https://www.npmjs.com/package/git-branch): Get the current branch for a local git repository. | [homepage](https://github.com/jonschlinkert/git-branch "Get the current branch for a local git repository.")
+* [git-user-name](https://www.npmjs.com/package/git-user-name): Get a user's name from git config at the project or global scope, depending on… [more](https://github.com/jonschlinkert/git-user-name) | [homepage](https://github.com/jonschlinkert/git-user-name "Get a user's name from git config at the project or global scope, depending on what git uses in the current context.")
+* [git-username](https://www.npmjs.com/package/git-username): Get the username from a git remote origin URL. | [homepage](https://github.com/jonschlinkert/git-username "Get the username from a git remote origin URL.")
+* [list-git-remotes](https://www.npmjs.com/package/list-git-remotes): List the remotes for a local git repository. Sync and async. | [homepage](https://github.com/jonschlinkert/list-git-remotes "List the remotes for a local git repository. Sync and async.")
+
 ### Contributing
 
 Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](../../issues/new).

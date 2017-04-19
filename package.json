@@ -20,8 +20,15 @@
     "test": "mocha"
   },
   "keywords": [
-    "generategenerator",
-    "gfc"
+    "add",
+    "commit",
+    "first",
+    "first-commit",
+    "git",
+    "git-add",
+    "git-commit",
+    "git-init",
+    "init"
   ],
   "dependencies": {
     "extend-shallow": "^2.0.1",
@@ -42,6 +49,14 @@
     "plugins": [
       "gulp-format-md"
     ],
+    "related": {
+      "list": [
+        "list-git-remotes",
+        "git-branch",
+        "git-username",
+        "git-user-name"
+      ]
+    },
     "lint": {
       "reflinks": true
     }
