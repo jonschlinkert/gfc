@@ -78,6 +78,20 @@ describe('git-add-remote', function() {
       });
     });
 
+    it('should not add a first commit when told not to', function(cb) {
+      firstCommit(fixtures('repo1'), { skipCommit: true }, function(err) {
+        if (err) {
+          cb(err);
+          return;
+        }
+
+        verify('repo1', null, function(err) {
+          assert(err);
+          cb();
+        })
+      });
+    });
+
     it('should customize first commit message', function(cb) {
       firstCommit(fixtures('repo1'), {message: 'foo'}, function(err) {
         if (err) {
