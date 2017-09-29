@@ -165,6 +165,20 @@ var options = {
 firstCommit.sync('foo/bar', options);
 ```
 
+### options.skipCommit
+
+**Type**: `boolean`
+
+**Default**: `false`
+
+Initialize the repo but don't commit
+
+```js
+var options = { skipCommit: true };
+
+firstCommit.sync('foo/bar', options);
+```
+
 ## About
 
 ### Related projects
