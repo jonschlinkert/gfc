@@ -171,7 +171,7 @@ firstCommit.sync('foo/bar', options);
 
 **Default**: `false`
 
-Initialize the repo but don't commit
+Initialize the repo and create the file but don't `git commit` or `git add .`.
 
 ```js
 var options = { skipCommit: true };
