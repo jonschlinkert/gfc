@@ -70,6 +70,9 @@ function command(options) {
     cmd.push('echo "' + options.contents + '" >> ' + options.filename);
   }
 
-  cmd.push('git add .', 'git commit -m "' + options.message + '"');
+  if (!options.skipCommit) {
+    cmd.push('git add .', 'git commit -m "' + options.message + '"');
+  }
+
   return cmd.join(' && ');
 }
