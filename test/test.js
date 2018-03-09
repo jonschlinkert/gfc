@@ -7,7 +7,7 @@ var path = require('path');
 var assert = require('assert');
 var rimraf = require('rimraf');
 var git = require('gitty');
-var firstCommit = require('./');
+var firstCommit = require('..');
 var repo;
 
 var fixtures = path.join.bind(path, __dirname, 'fixtures');
@@ -58,7 +58,7 @@ describe('git-add-remote', function() {
         verify('repo1', function(log, files) {
           assert(Array.isArray(files));
           assert.equal(files.length, 1);
-          assert.equal(files[0], 'temp.txt');
+          assert.equal(files[0], '.gitkeep');
         }, cb);
       });
     });
@@ -127,7 +127,7 @@ describe('git-add-remote', function() {
       verify('repo2', function(log, files) {
         assert(Array.isArray(files));
         assert.equal(files.length, 1);
-        assert.equal(files[0], 'temp.txt');
+        assert.equal(files[0], '.gitkeep');
       }, cb);
     });
 
@@ -162,7 +162,6 @@ describe('git-add-remote', function() {
     });
   });
 });
-
 
 function verify(dir, fn, cb) {
   var cwd = fixtures(dir);
