@@ -1,78 +1,120 @@
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var cp = require('child_process');
-var extend = require('extend-shallow');
-var mkdirp = require('mkdirp');
-var defaults = {
+const fs = require('fs');
+const util = require('util');
+const path = require('path');
+const mkdirp = require('mkdirp');
+const empty = require('empty-dir');
+const isGitUrl = require('is-git-url');
+const cp = require('child_process');
+const git = path.resolve.bind(path, '.git');
+const defaults = {
   message: 'first commit',
-  filename: 'temp.txt',
-  contents: 'test fixture',
-  exec: {}
+  file: { path: '.gitkeep', contents: '' }
 };
 
-module.exports = function(dir, options, cb) {
-  if (typeof dir !== 'string') {
-    cb = options;
-    options = dir;
-    dir = process.cwd();
+const firstCommit = async(cwd, options, callback) => {
+  const stats = util.promisify(fs.stat);
+  const mkdir = util.promisify(mkdirp);
+  const exec = util.promisify(cp.exec);
+
+  if (typeof cwd !== 'string') {
+    return firstCommit(process.cwd(), cwd, options);
   }
 
   if (typeof options === 'function') {
-    cb = options;
-    options = undefined;
+    return firstCommit(cwd, null, options);
   }
 
-  if (typeof cb !== 'function') {
-    throw new TypeError('expected callback to be a function');
-  }
+  const opts = Object.assign({ cwd: cwd }, options);
+  const execOpts = Object.assign({}, opts.exec, { cwd: opts.cwd });
 
-  var cwd = path.resolve(dir);
-  var opts = extend({}, defaults, options);
-  opts.exec = extend({}, defaults.exec, opts.exec, {cwd: cwd});
+  const promise = stats(git(opts.cwd))
+    .then(stat => {
+      throw new Error('.git repository already exists in: ' + git(opts.cwd));
+    })
+    .catch(() => mkdir(opts.cwd))
+    .then(async() => {
+      return await exec(createArgs(opts), execOpts);
+    });
 
-  if (fs.existsSync(path.join(cwd, '.git'))) {
-    cb(new Error('.git repository already exists in: ' + cwd));
+  if (typeof callback === 'function') {
+    promise.then(res => callback(null, res.stdout, res.stderr)).catch(callback);
     return;
   }
 
-  mkdirp(cwd, function(err) {
-    if (err) {
-      cb(err);
-      return;
-    }
-    cp.exec(command(opts), opts.exec, cb);
-  });
+  return promise;
 };
 
-module.exports.sync = function(dir, options) {
-  var cwd = path.resolve(dir);
-  var opts = extend({}, defaults, options);
-  opts.exec = extend({}, defaults.exec, opts.exec, {cwd: cwd});
+firstCommit.sync = function(cwd, options) {
+  if (typeof cwd !== 'string') {
+    return firstCommit.sync(process.cwd(), cwd);
+  }
 
-  if (fs.existsSync(path.join(cwd, '.git'))) {
-    throw new Error('.git repository already exists in: ' + cwd);
+  const opts = Object.assign({ cwd: cwd }, options);
+  const execOpts = Object.assign({}, opts.exec, { cwd: opts.cwd });
+
+  if (fs.existsSync(git(opts.cwd))) {
+    throw new Error('.git repository already exists in: ' + git(opts.cwd));
   }
 
   if (!fs.existsSync(cwd)) {
     mkdirp.sync(cwd);
   }
 
-  cp.execSync(command(opts), opts.exec);
+  return cp.execSync(createArgs(opts), execOpts);
 };
 
-function command(options) {
-  var cmd = ['git init'];
+function createArgs(options) {
+  const opts = Object.assign({}, defaults, options);
+  const args = ['git init'];
+  const files = opts.files ? arrayify(opts.files).join(' ') : '.';
+  let message = opts.message || 'First commit';
 
-  if (options.file !== false) {
-    cmd.push('touch "' + options.filename + '"');
-    cmd.push('echo "' + options.contents + '" >> ' + options.filename);
+  if (message[0] !== '"' && message.slice(-1) !== '"') {
+    message = `"${message}"`;
   }
 
-  if (!options.skipCommit) {
-    cmd.push('git add .', 'git commit -m "' + options.message + '"');
+  // backwards compatibility
+  if (opts.skipCommit === true) {
+    opts.commit = false;
   }
 
-  return cmd.join(' && ');
+  if (opts.forceFile === true || (opts.file !== false && isEmpty(opts.cwd))) {
+    args.push('touch "' + opts.file.path + '"');
+
+    if (opts.file.contents) {
+      args.push('echo "' + opts.file.contents.toString() + '" >> ' + opts.file.path);
+    }
+  }
+
+  if (opts.commit !== false) {
+    args.push(`git add ${files}`);
+    args.push(`git commit -m ${message}`);
+  }
+
+  if (typeof opts.remote === 'string' && isGitUrl(opts.remote)) {
+    args.push(`git remote add origin ${opts.remote}`);
+
+    if (opts.push === true) {
+      args.push('git push --force origin master:master');
+    }
+  }
+
+  return args.join(' && ');
 }
+
+function isEmpty(cwd) {
+  return empty.sync(cwd, garbage);
+}
+
+function garbage(filepath) {
+  return !/(Thumbs\.db|\.DS_Store)$/i.test(filepath);
+}
+
+function arrayify(val) {
+  return val != null ? (Array.isArray(val) ? val : [val]) : [];
+}
+
+firstCommit.createArgs = createArgs;
+module.exports = firstCommit;

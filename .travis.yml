@@ -9,9 +9,6 @@ node_js:
   - '8'
   - '7'
   - '6'
-  - '5'
-  - '4'
-  - '0.12'
 before_install:
   - git config --global user.name 'gfc-test'
   - git config --global user.email 'travis@gfc'

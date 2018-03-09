@@ -1,61 +1,56 @@
 'use strict';
 
 require('mocha');
-var fs = require('fs');
-var cp = require('child_process');
-var path = require('path');
-var assert = require('assert');
-var rimraf = require('rimraf');
-var git = require('gitty');
-var firstCommit = require('..');
-var repo;
-
-var fixtures = path.join.bind(path, __dirname, 'fixtures');
+const fs = require('fs');
+const util = require('util');
+const path = require('path');
+const cp = require('child_process');
+const assert = require('assert');
+const rimraf = require('rimraf');
+const git = require('gitty');
+const firstCommit = require('..');
+const fixtures = path.join.bind(path, __dirname, 'fixtures');
+let repo;
 
 describe('git-add-remote', function() {
-  describe('main export', function() {
-    it('should export a function', function() {
-      assert.equal(typeof firstCommit, 'function');
-    });
-
-    it('should expose a "sync" method', function() {
-      assert.equal(typeof firstCommit.sync, 'function');
-    });
-  });
+  beforeEach(() => rimraf.sync(fixtures()));
+  afterEach(() => rimraf.sync(fixtures()));
 
   describe('async', function() {
-    beforeEach(function(cb) {
-      rimraf(fixtures('repo'), cb);
-    })
+    it('should throw an error when .git directory exists', function(cb) {
+      firstCommit(fixtures('temp'), (err, stdout, stderr) => {
+        if (err) return cb(err);
 
-    afterEach(function(cb) {
-      rimraf(fixtures('repo1'), cb);
-    })
+        firstCommit(fixtures('temp'), err => {
+          assert(err);
 
-    it('should throw an error when callback is missing', function() {
-      assert.throws(function() {
-        firstCommit();
-      }, /expected callback to be a function/);
+          if (!(err instanceof Error)) {
+            cb(new Error('expected an error'));
+            return;
+          }
+          cb();
+        });
+      });
     });
 
     it('should create a git repository', function(cb) {
-      firstCommit(fixtures('repo1'), function(err) {
+      firstCommit(fixtures('temp'), function(err) {
         if (err) {
           cb(err);
           return;
         }
-        verify('repo1', cb);
+        verify('temp', cb);
       });
     });
 
     it('should add a file', function(cb) {
-      firstCommit(fixtures('repo1'), function(err) {
+      firstCommit(fixtures('temp'), function(err) {
         if (err) {
           cb(err);
           return;
         }
 
-        verify('repo1', function(log, files) {
+        verify('temp', function(log, files) {
           assert(Array.isArray(files));
           assert.equal(files.length, 1);
           assert.equal(files[0], '.gitkeep');
@@ -64,13 +59,13 @@ describe('git-add-remote', function() {
     });
 
     it('should add a first commit', function(cb) {
-      firstCommit(fixtures('repo1'), function(err) {
+      firstCommit(fixtures('temp'), function(err) {
         if (err) {
           cb(err);
           return;
         }
 
-        verify('repo1', function(log) {
+        verify('temp', function(log) {
           assert(Array.isArray(log));
           assert.equal(log.length, 1);
           assert.equal(log[0].message, 'first commit');
@@ -79,27 +74,27 @@ describe('git-add-remote', function() {
     });
 
     it('should not add a first commit when told not to', function(cb) {
-      firstCommit(fixtures('repo1'), { skipCommit: true }, function(err) {
+      firstCommit(fixtures('temp'), { skipCommit: true }, function(err) {
         if (err) {
           cb(err);
           return;
         }
 
-        verify('repo1', null, function(err) {
+        verify('temp', null, function(err) {
           assert(err);
           cb();
-        })
+        });
       });
     });
 
     it('should customize first commit message', function(cb) {
-      firstCommit(fixtures('repo1'), {message: 'foo'}, function(err) {
+      firstCommit(fixtures('temp'), {message: 'foo'}, function(err) {
         if (err) {
           cb(err);
           return;
         }
 
-        verify('repo1', function(log) {
+        verify('temp', function(log) {
           assert(Array.isArray(log));
           assert.equal(log.length, 1);
           assert.equal(log[0].message, 'foo');
@@ -108,23 +103,71 @@ describe('git-add-remote', function() {
     });
   });
 
-  describe('sync', function() {
-    beforeEach(function(cb) {
-      rimraf(fixtures('repo2'), cb);
-    })
+  describe('promise', function() {
+    const verifyP = util.promisify(verify);
 
-    afterEach(function(cb) {
-      rimraf(fixtures('repo2'), cb);
-    })
+    it('should throw an error when .git directory exists', function() {
+      return firstCommit(fixtures('temp')).then(() => {
+        return firstCommit(fixtures('temp'))
+          .then(() => new Error('expected an error'))
+          .catch(() => {});
+      });
+    });
 
     it('should create a git repository', function(cb) {
-      firstCommit.sync(fixtures('repo2'));
-      verify('repo2', cb);
+      return firstCommit(fixtures('temp')).then(() => verify('temp', cb));
     });
 
     it('should add a file', function(cb) {
-      firstCommit.sync(fixtures('repo2'));
-      verify('repo2', function(log, files) {
+      return firstCommit(fixtures('temp'))
+        .then(() => {
+          verify('temp', function(log, files) {
+            assert(Array.isArray(files));
+            assert.equal(files.length, 1);
+            assert.equal(files[0], '.gitkeep');
+          }, cb);
+        });
+    });
+
+    it('should add a first commit', function(cb) {
+      return firstCommit(fixtures('temp'))
+        .then(() => {
+          verify('temp', function(log, files) {
+            assert(Array.isArray(log));
+            assert.equal(log.length, 1);
+            assert.equal(log[0].message, 'first commit');
+          }, cb);
+        });
+    });
+
+    it('should customize first commit message', function(cb) {
+      return firstCommit(fixtures('temp'), { message: 'foo' })
+        .then(() => {
+          verify('temp', function(log, files) {
+            assert(Array.isArray(log));
+            assert.equal(log.length, 1);
+            assert.equal(log[0].message, 'foo');
+          }, cb);
+        });
+    });
+
+    it('should disable first commit', function(cb) {
+      return firstCommit(fixtures('temp'), { commit: false })
+        .then(() => verifyP('temp'))
+        .catch(err => assert(err))
+        .then(cb);
+    });
+  });
+
+  describe('sync', function() {
+    it('should create a git repository', function(cb) {
+      firstCommit.sync(fixtures('temp'));
+      verify('temp', cb);
+    });
+
+    it('should add a file', function(cb) {
+      firstCommit.sync(fixtures('temp'));
+      verify('temp', function(log, files) {
         assert(Array.isArray(files));
         assert.equal(files.length, 1);
         assert.equal(files[0], '.gitkeep');
@@ -132,8 +175,8 @@ describe('git-add-remote', function() {
     });
 
     it('should add a first commit', function(cb) {
-      firstCommit.sync(fixtures('repo2'));
-      verify('repo2', function(log) {
+      firstCommit.sync(fixtures('temp'));
+      verify('temp', function(log) {
         assert(Array.isArray(log));
         assert.equal(log.length, 1);
         assert.equal(log[0].message, 'first commit');
@@ -141,8 +184,8 @@ describe('git-add-remote', function() {
     });
 
     it('should customize first commit message', function(cb) {
-      firstCommit.sync(fixtures('repo2'), {message: 'foo'});
-      verify('repo2', function(log) {
+      firstCommit.sync(fixtures('temp'), {message: 'foo'});
+      verify('temp', function(log) {
         assert(Array.isArray(log));
         assert.equal(log.length, 1);
         assert.equal(log[0].message, 'foo');
@@ -150,14 +193,14 @@ describe('git-add-remote', function() {
     });
 
     it('should customize file name', function(cb) {
-      firstCommit.sync(fixtures('repo2'), {filename: 'foo.txt'});
-      verify('repo2', function(log, files) {
+      firstCommit.sync(fixtures('temp'), { file: { path: '.gitkeep' } });
+      verify('temp', function(log, files) {
         assert(Array.isArray(log));
         assert.equal(log.length, 1);
 
         assert(Array.isArray(files));
         assert.equal(files.length, 1);
-        assert.equal(files[0], 'foo.txt');
+        assert.equal(files[0], '.gitkeep');
       }, cb);
     });
   });
@@ -194,7 +237,7 @@ function verify(dir, fn, cb) {
 
         fn(log, files);
         cb();
-      })
+      });
     });
   });
 }

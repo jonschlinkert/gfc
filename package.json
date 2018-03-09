@@ -14,27 +14,28 @@
   ],
   "main": "index.js",
   "engines": {
-    "node": ">=0.12.0"
+    "node": ">=6"
   },
   "scripts": {
     "test": "mocha"
   },
   "dependencies": {
-    "extend-shallow": "^3.0.2",
+    "empty-dir": "^1.0.0",
+    "is-git-url": "^1.0.0",
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {
-    "gitty": "^3.6.0",
-    "gulp-format-md": "^1.0.0",
     "mocha": "^3.5.3",
-    "rimraf": "^2.6.2"
+    "delete": "^1.1.0",
+    "rimraf": "^2.6.2",
+    "gitty": "^3.6.0",
+    "gulp-format-md": "^1.0.0"
   },
   "keywords": [
     "add",
     "commit",
     "first",
     "first-commit",
-    "gfc",
     "git",
     "git-add",
     "git-commit",

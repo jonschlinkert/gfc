@@ -6,8 +6,6 @@ environment:
     - nodejs_version: "8.0"
     - nodejs_version: "7.0"
     - nodejs_version: "6.0"
-    - nodejs_version: "5.0"
-    - nodejs_version: "4.0"
 
 # Install scripts. (runs after repo cloning)
 install:
@@ -15,8 +13,8 @@ install:
   - ps: Install-Product node $env:nodejs_version
   # install modules
   - npm install
-  - git config --global user.email "you@example.com"
-  - git config --global user.name "Your Name"
+  - git config --global user.email "gfc@fakeemail.com"
+  - git config --global user.name "gfc-test"
 
 # Post-install test scripts.
 test_script:
