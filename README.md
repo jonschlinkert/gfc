@@ -1,6 +1,8 @@
-# gfc [![NPM version](https://img.shields.io/npm/v/gfc.svg?style=flat)](https://www.npmjs.com/package/gfc) [![NPM monthly downloads](https://img.shields.io/npm/dm/gfc.svg?style=flat)](https://npmjs.org/package/gfc) [![Linux Build Status](https://img.shields.io/travis/jonschlinkert/gfc.svg?style=flat&label=Travis)](https://travis-ci.org/jonschlinkert/gfc) [![Windows Build Status](https://img.shields.io/appveyor/ci/jonschlinkert/gfc.svg?style=flat&label=AppVeyor)](https://ci.appveyor.com/project/jonschlinkert/gfc)
+# gfc [![NPM version](https://img.shields.io/npm/v/gfc.svg?style=flat)](https://www.npmjs.com/package/gfc) [![NPM monthly downloads](https://img.shields.io/npm/dm/gfc.svg?style=flat)](https://npmjs.org/package/gfc) [![NPM total downloads](https://img.shields.io/npm/dt/gfc.svg?style=flat)](https://npmjs.org/package/gfc) [![Linux Build Status](https://img.shields.io/travis/jonschlinkert/gfc.svg?style=flat&label=Travis)](https://travis-ci.org/jonschlinkert/gfc) [![Windows Build Status](https://img.shields.io/appveyor/ci/jonschlinkert/gfc.svg?style=flat&label=AppVeyor)](https://ci.appveyor.com/project/jonschlinkert/gfc)
 
 > Simple way to initialize a new git repository in an empty directory, add a file and do a first commit (or skip that part in a directory with files). Useful for unit tests and generators.
+
+Please consider following this project's author, [Jon Schlinkert](https://github.com/jonschlinkert), and consider starring the project to show your :heart: and support.
 
 ## Install
 
@@ -10,18 +12,39 @@ Install with [npm](https://www.npmjs.com/):
 $ npm install --save gfc
 ```
 
-Install with [yarn](https://yarnpkg.com):
-
-```sh
-$ yarn add gfc
-```
-
 ## Usage
 
 ```js
-var firstCommit = require('gfc');
+const firstCommit = require('gfc');
+```
 
-// async
+The main export is an async function that takes a [callback](#async-usage) or returns a [promise](#promise-usage) when no callback is passed. A [.sync](#sync-usage) method is also exposed.
+
+**Default behavior**
+
+The following steps can be customized with [options](#options):
+
+1. Creates a new git repository
+2. Adds a `.gitkeep` file if the cwd is empty.
+3. `git add .`
+4. do a first commit with the message `"first commit"`
+
+### promise usage
+
+Returns a promise if a [callback](#async-usage) is not passed.
+
+```js
+firstCommit(cwd[, options])
+  .then(res => {
+    console.log('stdout: ' + res.stdout);
+    console.log('stderr: ' + res.stderr);
+  })
+  .catch(err => console.log('Error: ', err));
+```
+
+### async usage
+
+```js
 firstCommit(cwd[, options], function(err, stdout, stderr) {
   if (err) {
     console.error('exec error: ' + err);
@@ -30,99 +53,24 @@ firstCommit(cwd[, options], function(err, stdout, stderr) {
   console.log('stdout: ' + stdout);
   console.log('stderr: ' + stderr);
 });
+```
 
-// sync
+### sync usage
+
+```js
 firstCommit.sync(cwd[, options]);
 ```
 
-**Example**
-
-```js
-var firstCommit = require('gfc');
-var dir = 'foo/bar';
-
-firstCommit(dir, function(err) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log('done!');
-  }
-});
-```
-
-_(NOTE: Most of the following examples will show async usage, but for the most part, the sync method works the same way without the callback)_
-
-## What does this do?
-
-By default, this library will:
-
-1. create a new git repository
-2. add a `temp.txt` file
-3. `git add .`
-4. do a first commit with the message `"first commit"`
-
-You can [disable #2](#optionsfile), or customize other behavior via [options](#options).
-
 ## Options
-
-### options.contents
-
-**Type**: `string`
-
-**Default**: `'test fixture'`
-
-If [not disabled](#optionsfile), customize the contents of the default file added in [step 2](#what-does-this-do).
-
-```js
-var options = {contents: 'my custom contents'};
-
-firstCommit('foo/bar', options, function(err) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log('done!');
-  }
-});
-```
 
 ### options.file
 
-**Type**: `boolean`
+**Type**: `object|boolean`
 
-**Default**: `undefined`
-
-Disable adding the default file in [step 2](#what-does-this-do).
+**Default**: `{ path: '.gitkeep', contents: '' }`
 
 ```js
-var options = {file: false};
-
-firstCommit('foo/bar', options, function(err) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log('done!');
-  }
-});
-```
-
-### options.filename
-
-**Type**: `string`
-
-**Default**: `'temp.txt'`
-
-If [not disabled](#optionsfile), customize the filename of the file added in [step 2](#what-does-this-do).
-
-```js
-var options = {message: 'my amazing first commit'};
-
-firstCommit('foo/bar', options, function(err) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log('done!');
-  }
-});
+firstCommit.sync('foo/bar', { file: false })
 ```
 
 ### options.message
@@ -130,8 +78,6 @@ firstCommit('foo/bar', options, function(err) {
 **Type**: `string`
 
 **Default**: `'first commit'`
-
-Customize the [first commit message](#what-does-this-do).
 
 ```js
 var options = {message: 'my amazing first commit'};
@@ -165,36 +111,30 @@ var options = {
 firstCommit.sync('foo/bar', options);
 ```
 
-### options.skipCommit
-
-**Type**: `boolean`
-
-**Default**: `false`
-
-Initialize the repo and create the file but don't `git commit` or `git add .`.
-
-```js
-var options = { skipCommit: true };
-
-firstCommit.sync('foo/bar', options);
-```
-
 ## About
 
-### Related projects
-
-* [git-branch](https://www.npmjs.com/package/git-branch): Get the current branch for a local git repository. | [homepage](https://github.com/jonschlinkert/git-branch "Get the current branch for a local git repository.")
-* [git-user-name](https://www.npmjs.com/package/git-user-name): Get a user's name from git config at the project or global scope, depending on… [more](https://github.com/jonschlinkert/git-user-name) | [homepage](https://github.com/jonschlinkert/git-user-name "Get a user's name from git config at the project or global scope, depending on what git uses in the current context.")
-* [git-username](https://www.npmjs.com/package/git-username): Get the username from a git remote origin URL. | [homepage](https://github.com/jonschlinkert/git-username "Get the username from a git remote origin URL.")
-* [list-git-remotes](https://www.npmjs.com/package/list-git-remotes): List the remotes for a local git repository. Sync and async. | [homepage](https://github.com/jonschlinkert/list-git-remotes "List the remotes for a local git repository. Sync and async.")
-
-### Contributing
+<details>
+<summary><strong>Contributing</strong></summary>
 
 Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](../../issues/new).
 
 Please read the [contributing guide](.github/contributing.md) for advice on opening issues, pull requests, and coding standards.
 
-### Building docs
+</details>
+
+<details>
+<summary><strong>Running Tests</strong></summary>
+
+Running and reviewing unit tests is a great way to get familiarized with a library and its API. You can install dependencies and run tests with the following command:
+
+```sh
+$ npm install && npm test
+```
+
+</details>
+
+<details>
+<summary><strong>Building docs</strong></summary>
 
 _(This project's readme.md is generated by [verb](https://github.com/verbose/verb-generate-readme), please don't edit the readme directly. Any changes to the readme must be made in the [.verb.md](.verb.md) readme template.)_
 
@@ -204,26 +144,37 @@ To generate the readme, run the following command:
 $ npm install -g verbose/verb#dev verb-generate-readme && verb
 ```
 
-### Running tests
+</details>
 
-Running and reviewing unit tests is a great way to get familiarized with a library and its API. You can install dependencies and run tests with the following command:
+### Related projects
 
-```sh
-$ npm install && npm test
-```
+You might also be interested in these projects:
+
+* [git-branch](https://www.npmjs.com/package/git-branch): Get the current branch for a local git repository. | [homepage](https://github.com/jonschlinkert/git-branch "Get the current branch for a local git repository.")
+* [git-user-name](https://www.npmjs.com/package/git-user-name): Get a user's name from git config at the project or global scope, depending on… [more](https://github.com/jonschlinkert/git-user-name) | [homepage](https://github.com/jonschlinkert/git-user-name "Get a user's name from git config at the project or global scope, depending on what git uses in the current context.")
+* [git-username](https://www.npmjs.com/package/git-username): Get the username (or 'owner' name) from a git/GitHub remote origin URL. | [homepage](https://github.com/jonschlinkert/git-username "Get the username (or 'owner' name) from a git/GitHub remote origin URL.")
+* [list-git-remotes](https://www.npmjs.com/package/list-git-remotes): List the remotes for a local git repository. Sync and async. | [homepage](https://github.com/jonschlinkert/list-git-remotes "List the remotes for a local git repository. Sync and async.")
+
+### Contributors
+
+| **Commits** | **Contributor** | 
+| --- | --- |
+| 6 | [johno](https://github.com/johno) |
+| 6 | [jonschlinkert](https://github.com/jonschlinkert) |
 
 ### Author
 
 **Jon Schlinkert**
 
-* [github/jonschlinkert](https://github.com/jonschlinkert)
-* [twitter/jonschlinkert](https://twitter.com/jonschlinkert)
+* [LinkedIn Profile](https://linkedin.com/in/jonschlinkert)
+* [GitHub Profile](https://github.com/jonschlinkert)
+* [Twitter Profile](https://twitter.com/jonschlinkert)
 
 ### License
 
-Copyright © 2017, [Jon Schlinkert](https://github.com/jonschlinkert).
+Copyright © 2018, [Jon Schlinkert](https://github.com/jonschlinkert).
 Released under the [MIT License](LICENSE).
 
 ***
 
-_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.5.0, on April 19, 2017._
+_This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on March 09, 2018._
