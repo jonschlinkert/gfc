@@ -33,7 +33,12 @@ const firstCommit = async(cwd, options, callback) => {
     .then(stat => {
       throw new Error('.git repository already exists in: ' + git(opts.cwd));
     })
-    .catch(() => mkdir(opts.cwd))
+    .catch(err => {
+      if (err.code === 'ENOENT') {
+        return mkdir(opts.cwd);
+      }
+      return Promise.reject(err);
+    })
     .then(async() => {
       return await exec(createArgs(opts), execOpts);
     });
