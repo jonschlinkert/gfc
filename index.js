@@ -7,7 +7,7 @@ const mkdirp = require('mkdirp');
 const empty = require('empty-dir');
 const isGitUrl = require('is-git-url');
 const cp = require('child_process');
-const git = path.resolve.bind(path, '.git');
+const git = fp => path.resolve(fp, '.git');
 const defaults = {
   message: 'first commit',
   file: { path: '.gitkeep', contents: '' }
